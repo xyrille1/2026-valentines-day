@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kawaii Valentine! 🎀</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Gaegu:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --kawaii-pink: #ffb7c5;
+            --kawaii-blue: #a0e7ff;
+            --kawaii-yellow: #fff4bd;
+            --kawaii-purple: #d1b3ff;
+            --deep-ink: #2d3436;
+        }
+        
+        * {
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Gaegu', cursive;
+            background-color: var(--kawaii-yellow);
+            overflow: hidden;
+            margin: 0;
+            height: 100vh;
+            width: 100vw;
+            background-image: radial-gradient(var(--kawaii-purple) 2px, transparent 2px);
+            background-size: 40px 40px;
+        }
+
+        .cartoon-font { font-family: 'Fredoka One', cursive; }
+        
+        .chunky-border {
+            border: 4px solid var(--deep-ink);
+            box-shadow: 6px 6px 0px var(--deep-ink);
+        }
+        @media (min-width: 768px) {
+            .chunky-border {
+                border: 6px solid var(--deep-ink);
+                box-shadow: 12px 12px 0px var(--deep-ink);
+            }
+        }
+
+        /* Animations */
+        @keyframes popIn {
+            0% { transform: scale(0) rotate(-5deg); opacity: 0; }
+            70% { transform: scale(1.1) rotate(2deg); }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+        .animate-pop { animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+
+        @keyframes bounce-slow {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(5deg); }
+        }
+        .animate-kawaii { animation: bounce-slow 3s ease-in-out infinite; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-12px) rotate(-3deg); }
+            75% { transform: translateX(12px) rotate(3deg); }
+        }
+        .shake { animation: shake 0.2s ease-in-out infinite; }
+
+        .floating-tulip {
+            position: fixed;
+            pointer-events: none;
+            z-index: 1;
+            font-size: 30px;
+            animation: rise-and-sway 6s ease-in forwards;
+        }
+        @media (min-width: 768px) {
+            .floating-tulip { font-size: 40px; }
+        }
+
+        @keyframes rise-and-sway {
+            0% { transform: translateY(110vh) translateX(0) scale(0.5); opacity: 0; }
+            20% { opacity: 1; }
+            100% { transform: translateY(-20vh) translateX(50px) scale(1.5) rotate(45deg); opacity: 0; }
+        }
+
+        /* Hug Animation */
+        .paper-human {
+            width: 80px;
+            height: 120px;
+            stroke: var(--deep-ink);
+            stroke-width: 6;
+            fill: none;
+            stroke-linecap: round;
+            transition: transform 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @media (min-width: 768px) {
+            .paper-human { width: 100px; height: 140px; }
+        }
+        .hug-active-left { transform: translateX(30px) rotate(15deg); }
+        .hug-active-right { transform: translateX(-30px) rotate(-15deg); }
+        @media (min-width: 768px) {
+            .hug-active-left { transform: translateX(45px) rotate(15deg); }
+            .hug-active-right { transform: translateX(-45px) rotate(-15deg); }
+        }
+
+        .yes-btn {
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.3s;
+            max-width: 90vw;
+            max-height: 40vh;
+        }
+        
+        .yes-btn::before, .yes-btn::after {
+            content: '🌷';
+            position: absolute;
+            top: -20px;
+            font-size: 24px;
+            opacity: 0;
+            transition: opacity 0.3s, transform 0.3s;
+            pointer-events: none;
+        }
+        @media (min-width: 768px) {
+            .yes-btn::before, .yes-btn::after { top: -25px; font-size: 32px; }
+        }
+        .yes-btn::before { left: 10px; transform: rotate(-15deg); }
+        .yes-btn::after { right: 10px; transform: rotate(15deg); }
+        .yes-btn:hover::before, .yes-btn:hover::after { opacity: 1; }
+
+        .letter-bg {
+            background-color: white;
+            background-image: 
+                linear-gradient(90deg, transparent 39px, #d1b3ff 39px, #d1b3ff 41px, transparent 41px),
+                linear-gradient(#eee 0.1em, transparent 0.1em);
+            background-size: 100% 1.2em;
+        }
+        @media (min-width: 768px) {
+            .letter-bg {
+                background-image: 
+                    linear-gradient(90deg, transparent 79px, #d1b3ff 79px, #d1b3ff 81px, transparent 81px),
+                    linear-gradient(#eee 0.1em, transparent 0.1em);
+            }
+        }
+
+        #no-btn {
+            z-index: 100;
+            white-space: nowrap;
+        }
+
+        .fade-out {
+            opacity: 0;
+            transition: opacity 0.5s ease-out;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center">
+
+    <!-- Phase 1: Welcome -->
+    <div id="welcome-screen" class="fixed inset-0 z-[1000] flex flex-col items-center justify-center bg-[#e9dbff] px-4">
+        <div class="text-center animate-kawaii">
+            <div class="text-6xl md:text-8xl mb-6 md:mb-8">🌷</div>
+            <h1 class="text-5xl md:text-8xl text-white cartoon-font drop-shadow-[0_4px_0px_#b392ff] md:drop-shadow-[0_8px_0px_#b392ff]">HEWWO! ❤️</h1>
+            <p class="text-xl md:text-2xl mt-4 text-purple-600 font-bold animate-pulse">A purple garden for you...</p>
+        </div>
+    </div>
+
+    <!-- Phase 2: Proposal -->
+    <div id="proposal-screen" class="hidden flex flex-col items-center justify-center p-4 text-center z-10 w-full max-w-2xl overflow-hidden">
+        <div class="bg-white chunky-border p-6 md:p-12 rounded-[30px] md:rounded-[50px] w-full transform -rotate-1 relative">
+            <div class="text-5xl md:text-6xl mb-4 animate-kawaii">🌷</div>
+            <h2 class="text-3xl md:text-5xl text-gray-800 cartoon-font mb-6 md:mb-10 leading-tight">Be My Valentine, <br/><span class="text-purple-500">Pwease?</span></h2>
+            <div class="flex flex-col md:flex-row gap-6 md:gap-8 items-center justify-center min-h-[200px] relative w-full overflow-visible">
+                <button id="yes-btn" class="yes-btn bg-purple-400 text-white px-10 py-4 md:px-14 md:py-6 rounded-full text-2xl md:text-3xl cartoon-font chunky-border hover:bg-purple-500 active:scale-95 z-20 relative">
+                    YESSS!
+                </button>
+                <button id="no-btn" class="bg-gray-300 text-gray-600 px-6 py-3 md:px-8 md:py-4 rounded-full text-lg md:text-xl cartoon-font chunky-border absolute md:static transition-all duration-150 ease-out z-30">
+                    Noo :(
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Phase 3: Success -->
+    <div id="success-screen" class="hidden flex flex-col items-center justify-center p-4 text-center z-10 w-full">
+        <div class="flex justify-center gap-4 md:gap-6 mb-6 animate-kawaii text-5xl md:text-6xl">
+             <span>🌷</span>
+             <span class="scale-125">🌷</span>
+             <span>🌷</span>
+        </div>
+        <h2 id="success-text" class="text-4xl md:text-7xl text-purple-600 cartoon-font mb-8 drop-shadow-lg px-2"></h2>
+        
+        <div id="envelope-container" class="cursor-pointer relative group scale-100 md:scale-150 transition-transform">
+            <div class="absolute -top-10 -left-10 text-3xl group-hover:animate-bounce">🌷</div>
+            <div class="absolute -bottom-6 -right-6 text-3xl group-hover:animate-spin">🌷</div>
+            
+            <div id="envelope-icon">
+                <svg viewBox="0 0 24 24" width="180" height="180" class="md:w-[240px] md:h-[240px]" fill="#d1b3ff" stroke="var(--deep-ink)" stroke-width="2">
+                    <rect x="2" y="4" width="20" height="16" rx="4" />
+                    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" fill="none" />
+                    <circle cx="12" cy="13" r="3" fill="white" />
+                    <path d="M12 11.5l.5 1h1l-.7.5.3 1-.8-.6-.8.6.3-1-.7-.5h1z" fill="#d1b3ff" />
+                </svg>
+            </div>
+            <p class="mt-6 md:mt-8 text-purple-500 text-2xl md:text-3xl cartoon-font animate-pulse">Open Your Garden! ✨</p>
+        </div>
+    </div>
+
+    <!-- Phase 4: Final Letter -->
+    <div id="final-screen" class="hidden fixed inset-0 flex flex-col items-center justify-start bg-purple-50 overflow-y-auto pt-8 md:pt-12 pb-20 px-4">
+        <div id="hug-scene" class="flex justify-center items-center gap-2 mb-6 h-36 md:h-48">
+            <div id="bunny" class="paper-human flex flex-col items-center">
+                <div class="text-4xl md:text-6xl">🐰</div>
+                <div class="text-2xl md:text-4xl -mt-2 md:-mt-4">🌷</div>
+            </div>
+            <div id="cat" class="paper-human flex flex-col items-center">
+                <div class="text-4xl md:text-6xl">🐱</div>
+                <div class="text-2xl md:text-4xl -mt-2 md:-mt-4">🌷</div>
+            </div>
+        </div>
+
+        <div class="max-w-xl w-full mx-auto px-6 md:px-10 py-10 md:py-12 letter-bg chunky-border rounded-[30px] md:rounded-[60px] relative">
+            <div class="absolute -top-8 -right-8 text-4xl md:text-6xl animate-bounce">🌷</div>
+            <div class="absolute -bottom-8 -left-8 text-4xl md:text-6xl">🌷</div>
+            
+            <h3 class="text-2xl md:text-4xl text-purple-500 cartoon-font mb-6 md:mb-8 text-center">A Tulip For My Favorite! 🌷</h3>
+            <div class="text-gray-800 leading-relaxed space-y-4 md:space-y-6 text-lg md:text-2xl font-bold">
+                <p>Hello my favorite human! 🍓</p>
+                <p>You just picked the best flower in the garden (the "YES" button)! This means we are legally required to cuddle and visit flower fields together. Those are the rules! 📜💜</p>
+                <p>I love you more than tulips love the spring sun, more than cats love naps, and definitely more than anyone else in the whole galaxy! 🌌✨</p>
+                <div class="pt-6 md:pt-8 text-center">
+                    <div class="text-4xl md:text-5xl mb-4 flex justify-center gap-2">🌷💜🌷</div>
+                    <p class="cartoon-font text-2xl md:text-3xl text-purple-400">BEST VALENTINE EVER!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function spawnTulip() {
+            const el = document.createElement('div');
+            el.className = 'floating-tulip';
+            el.innerText = '🌷';
+            el.style.left = Math.random() * 90 + 'vw';
+            const scale = (Math.random() * 0.8 + 0.5);
+            el.style.transform = `scale(${scale})`;
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 6000);
+        }
+        setInterval(spawnTulip, 1000);
+
+        const welcome = document.getElementById('welcome-screen');
+        const proposal = document.getElementById('proposal-screen');
+        const success = document.getElementById('success-screen');
+        const final = document.getElementById('final-screen');
+        const noBtn = document.getElementById('no-btn');
+        const yesBtn = document.getElementById('yes-btn');
+        const envelope = document.getElementById('envelope-container');
+
+        // Transitions
+        setTimeout(() => {
+            welcome.classList.add('fade-out');
+            welcome.style.transform = 'translateY(-100%)';
+            setTimeout(() => {
+                welcome.style.display = 'none';
+                proposal.classList.remove('hidden');
+                proposal.classList.add('animate-pop');
+            }, 500);
+        }, 3000);
+
+        // Escape No Logic
+        const escape = (e) => {
+            if (e) e.preventDefault();
+            const rect = noBtn.getBoundingClientRect();
+            const margin = 40;
+            const x = Math.random() * (window.innerWidth - rect.width - margin * 2) + margin;
+            const y = Math.random() * (window.innerHeight - rect.height - margin * 2) + margin;
+            
+            noBtn.style.position = 'fixed';
+            noBtn.style.left = `${x}px`;
+            noBtn.style.top = `${y}px`;
+            noBtn.innerText = ["Nope!", "Hehe!", "Try again!", "Nu-uh!", "Oops!", "Missed!"][Math.floor(Math.random()*6)];
+        };
+
+        noBtn.addEventListener('mouseover', escape);
+        noBtn.addEventListener('touchstart', escape);
+
+        // Growth Logic
+        let currentScale = 1;
+        const grower = setInterval(() => {
+            if (!proposal.classList.contains('hidden')) {
+                currentScale += 0.05;
+                // Add max limit to prevent button from breaking mobile layouts
+                const maxScale = window.innerWidth < 768 ? 4 : 10;
+                if (currentScale < maxScale) {
+                    yesBtn.style.transform = `scale(${currentScale})`;
+                } else {
+                    clearInterval(grower);
+                }
+            }
+        }, 1200);
+
+        yesBtn.addEventListener('click', () => {
+            clearInterval(grower);
+            confetti({
+                particleCount: window.innerWidth < 768 ? 100 : 200,
+                spread: 100,
+                origin: { y: 0.6 },
+                colors: ['#d1b3ff', '#ffffff', '#e9dbff']
+            });
+            proposal.classList.add('fade-out');
+            setTimeout(() => {
+                proposal.style.display = 'none';
+                success.classList.remove('hidden');
+                success.classList.add('animate-pop');
+                document.getElementById('success-text').innerText = "WAAAAAH! I'M SO HAPPY! 🍡";
+            }, 500);
+        });
+
+        // Envelope Logic
+        let clicks = 0;
+        envelope.addEventListener('click', (e) => {
+            clicks++;
+            if (clicks < 3) {
+                envelope.classList.add('shake');
+                setTimeout(() => envelope.classList.remove('shake'), 200);
+                
+                const pop = document.createElement('div');
+                pop.innerText = '🌷';
+                pop.className = "fixed animate-bounce text-4xl md:text-5xl pointer-events-none z-[2000]";
+                const rect = envelope.getBoundingClientRect();
+                pop.style.left = (e.clientX || rect.left + rect.width/2) + "px";
+                pop.style.top = (e.clientY || rect.top + rect.height/2 - 50) + "px";
+                document.body.appendChild(pop);
+                setTimeout(() => pop.remove(), 800);
+            } else {
+                success.classList.add('fade-out');
+                setTimeout(() => {
+                    success.style.display = 'none';
+                    final.classList.remove('hidden');
+                    final.classList.add('animate-pop');
+                    setTimeout(() => {
+                        document.getElementById('bunny').classList.add('hug-active-left');
+                        document.getElementById('cat').classList.add('hug-active-right');
+                    }, 500);
+                }, 500);
+            }
+        });
+    </script>
+</body>
+</html>
