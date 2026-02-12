@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Kawaii Valentine! 🎀</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -25,10 +25,11 @@
         body {
             font-family: 'Gaegu', cursive;
             background-color: var(--kawaii-yellow);
-            overflow: hidden;
             margin: 0;
-            height: 100vh;
-            width: 100vw;
+            min-height: 100vh;
+            width: 100%;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
             background-image: radial-gradient(var(--kawaii-purple) 2px, transparent 2px);
             background-size: 40px 40px;
         }
@@ -71,11 +72,8 @@
             position: fixed;
             pointer-events: none;
             z-index: 1;
-            font-size: 30px;
+            font-size: clamp(20px, 4.5vw, 40px);
             animation: rise-and-sway 6s ease-in forwards;
-        }
-        @media (min-width: 768px) {
-            .floating-tulip { font-size: 40px; }
         }
 
         @keyframes rise-and-sway {
@@ -86,16 +84,13 @@
 
         /* Hug Animation */
         .paper-human {
-            width: 80px;
-            height: 120px;
+            width: clamp(56px, 14vw, 100px);
+            height: clamp(86px, 22vw, 140px);
             stroke: var(--deep-ink);
             stroke-width: 6;
             fill: none;
             stroke-linecap: round;
             transition: transform 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        @media (min-width: 768px) {
-            .paper-human { width: 100px; height: 140px; }
         }
         .hug-active-left { transform: translateX(30px) rotate(15deg); }
         .hug-active-right { transform: translateX(-30px) rotate(-15deg); }
@@ -150,6 +145,29 @@
             opacity: 0;
             transition: opacity 0.5s ease-out;
         }
+        .slide-up { transform: translateY(-100%); transition: transform 0.5s ease-out; }
+        /* Responsive tweaks for small screens */
+        .envelope-svg { width: min(48vw, 240px); height: auto; display: block; }
+        /* Center envelope container contents */
+        #envelope-container { display: flex; justify-content: center; align-items: center; }
+
+        @media (max-width: 640px) {
+            .chunky-border { border-width: 4px; box-shadow: 6px 6px 0px var(--deep-ink); }
+            #welcome-screen { padding: 2rem 1rem; }
+            #proposal-screen .chunky-border { padding: 1.25rem; border-radius: 26px; }
+            #proposal-screen h2 { font-size: clamp(1.2rem, 6vw, 2rem); }
+            #welcome-screen .text-6xl { font-size: clamp(2rem, 10vw, 3.5rem); }
+            #success-screen #success-text { font-size: clamp(1.4rem, 8vw, 2.5rem); }
+            .paper-human .text-4xl { font-size: clamp(1.5rem, 6vw, 2.2rem); }
+            /* Make sure fixed 'no' button doesn't overflow mobile edges when JS repositions it */
+            #no-btn { max-width: 40vw; white-space: nowrap; padding-left: .5rem; padding-right: .5rem; }
+            /* Button row: side-by-side on small screens */
+            .button-row { flex-direction: row; gap: 0.75rem; }
+            .button-row > button { flex: 1 1 0; min-width: 0; }
+            .button-row .yes-btn { max-width: none; }
+            /* Hide envelope decoration offsets on small screens so the icon stays centered */
+            #envelope-container .env-deco-left, #envelope-container .env-deco-right { display: none; }
+        }
     </style>
 </head>
 <body class="flex items-center justify-center">
@@ -168,11 +186,11 @@
         <div class="bg-white chunky-border p-6 md:p-12 rounded-[30px] md:rounded-[50px] w-full transform -rotate-1 relative">
             <div class="text-5xl md:text-6xl mb-4 animate-kawaii">🌷</div>
             <h2 class="text-3xl md:text-5xl text-gray-800 cartoon-font mb-6 md:mb-10 leading-tight">Be My Valentine, <br/><span class="text-purple-500">Pwease?</span></h2>
-            <div class="flex flex-col md:flex-row gap-6 md:gap-8 items-center justify-center min-h-[200px] relative w-full overflow-visible">
+            <div class="flex flex-row md:flex-row gap-6 md:gap-8 items-center justify-center min-h-[200px] relative w-full overflow-visible button-row">
                 <button id="yes-btn" class="yes-btn bg-purple-400 text-white px-10 py-4 md:px-14 md:py-6 rounded-full text-2xl md:text-3xl cartoon-font chunky-border hover:bg-purple-500 active:scale-95 z-20 relative">
                     YESSS!
                 </button>
-                <button id="no-btn" class="bg-gray-300 text-gray-600 px-6 py-3 md:px-8 md:py-4 rounded-full text-lg md:text-xl cartoon-font chunky-border absolute md:static transition-all duration-150 ease-out z-30">
+                <button id="no-btn" class="bg-gray-300 text-gray-600 px-6 py-3 md:px-8 md:py-4 rounded-full text-lg md:text-xl cartoon-font chunky-border static md:absolute transition-all duration-150 ease-out z-30">
                     Noo :(
                 </button>
             </div>
@@ -189,11 +207,11 @@
         <h2 id="success-text" class="text-4xl md:text-7xl text-purple-600 cartoon-font mb-8 drop-shadow-lg px-2"></h2>
         
         <div id="envelope-container" class="cursor-pointer relative group scale-100 md:scale-150 transition-transform">
-            <div class="absolute -top-10 -left-10 text-3xl group-hover:animate-bounce">🌷</div>
-            <div class="absolute -bottom-6 -right-6 text-3xl group-hover:animate-spin">🌷</div>
+            <div class="absolute -top-10 -left-10 text-3xl group-hover:animate-bounce env-deco-left">🌷</div>
+            <div class="absolute -bottom-6 -right-6 text-3xl group-hover:animate-spin env-deco-right">🌷</div>
             
             <div id="envelope-icon">
-                <svg viewBox="0 0 24 24" width="180" height="180" class="md:w-[240px] md:h-[240px]" fill="#d1b3ff" stroke="var(--deep-ink)" stroke-width="2">
+                <svg viewBox="0 0 24 24" class="envelope-svg md:w-[240px] md:h-[240px]" fill="#d1b3ff" stroke="var(--deep-ink)" stroke-width="2">
                     <rect x="2" y="4" width="20" height="16" rx="4" />
                     <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" fill="none" />
                     <circle cx="12" cy="13" r="3" fill="white" />
@@ -258,9 +276,9 @@
         // Transitions
         setTimeout(() => {
             welcome.classList.add('fade-out');
-            welcome.style.transform = 'translateY(-100%)';
+            welcome.classList.add('slide-up');
             setTimeout(() => {
-                welcome.style.display = 'none';
+                welcome.classList.add('hidden');
                 proposal.classList.remove('hidden');
                 proposal.classList.add('animate-pop');
             }, 500);
@@ -269,19 +287,27 @@
         // Escape No Logic
         const escape = (e) => {
             if (e) e.preventDefault();
-            const rect = noBtn.getBoundingClientRect();
+                const rect = noBtn.getBoundingClientRect();
             const margin = 40;
             const x = Math.random() * (window.innerWidth - rect.width - margin * 2) + margin;
             const y = Math.random() * (window.innerHeight - rect.height - margin * 2) + margin;
-            
+
             noBtn.style.position = 'fixed';
             noBtn.style.left = `${x}px`;
             noBtn.style.top = `${y}px`;
             noBtn.innerText = ["Nope!", "Hehe!", "Try again!", "Nu-uh!", "Oops!", "Missed!"][Math.floor(Math.random()*6)];
         };
 
-        noBtn.addEventListener('mouseover', escape);
-        noBtn.addEventListener('touchstart', escape);
+        // Attach the "escape" behavior depending on input type/viewport
+        if (window.innerWidth >= 768) {
+            // Desktop: use mouseover and touchstart
+            noBtn.addEventListener('mouseover', escape);
+            noBtn.addEventListener('touchstart', escape);
+        } else {
+            // Mobile: use touchstart and click fallback so it moves on touch
+            noBtn.addEventListener('touchstart', escape, { passive: false });
+            noBtn.addEventListener('click', escape);
+        }
 
         // Growth Logic
         let currentScale = 1;
@@ -306,9 +332,9 @@
                 origin: { y: 0.6 },
                 colors: ['#d1b3ff', '#ffffff', '#e9dbff']
             });
-            proposal.classList.add('fade-out');
+                proposal.classList.add('fade-out');
             setTimeout(() => {
-                proposal.style.display = 'none';
+                proposal.classList.add('hidden');
                 success.classList.remove('hidden');
                 success.classList.add('animate-pop');
                 document.getElementById('success-text').innerText = "WAAAAAH! I'M SO HAPPY! 🍡";
@@ -334,7 +360,7 @@
             } else {
                 success.classList.add('fade-out');
                 setTimeout(() => {
-                    success.style.display = 'none';
+                    success.classList.add('hidden');
                     final.classList.remove('hidden');
                     final.classList.add('animate-pop');
                     setTimeout(() => {
